@@ -25,6 +25,8 @@ run 0
 print "PAIR_PE=$(pe:%.16g)"
 group first id 1
 compute force first reduce sum fx
+thermo_style custom step c_force
+thermo_modify norm no
 run 0
 print "PAIR_FX=$(c_force:%.16g)"
 """
@@ -105,7 +107,7 @@ def main():
                 "force_x":force,"expected_force_x":force_expected},
         "nve":{"atoms":int(atoms),"steps":500,"initial":initial,"final":final,
                "energy_drift_per_atom":drift},
-        "commit":os.environ.get("GITHUB_SHA","local")}
+        "commit":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip() if os.environ.get("GITHUB_ACTIONS") else "local"}
     print(json.dumps(receipt,sort_keys=True))
 if __name__=="__main__":
     main()
