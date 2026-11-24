@@ -1,0 +1,28 @@
+name: LAMMPS engine fixture
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'profiles/lammps/**'
+      - '.github/workflows/lammps-smoke.yml'
+permissions:
+  contents: read
+concurrency:
+  group: lammps-fixture-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  engine:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'mhatipog'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned CPU engine
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends lammps=20240207+dfsg-1.1build3
+          dpkg-query -W lammps
+      - name: Validate analytic pair force and NVE integration
+        run: python3 profiles/lammps/smoke.py
